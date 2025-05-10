@@ -1,0 +1,102 @@
+User Guide: Processing Biofilm Data into CSV
+
+This script reads structured .txt files containing data entries with an 'Image Name'
+property and compiles them into a single, filtered .csv file. It also includes special
+handling to summarize “Live” and “Dead” biomass values and their ratio.
+
+Requirements
+
+Before using the script, you must have Python installed on your Windows machine.
+
+How to check if Python is installed:
+
+Open Command Prompt or PowerShell.
+
+Type:
+python --version
+OR
+py --version
+
+If Python is installed, you’ll see a version number like:
+Python 3.10.6
+
+If you see an error like:
+'python' is not recognized as an internal or external command
+
+Then you need to install Python from:
+https://www.python.org/downloads/windows/
+
+IMPORTANT: During installation, check the box labeled
+"Add Python to PATH".
+
+Preparing Your Files
+
+The script can be run from any location on your computer.
+Just make sure the path you provide to the root directory of your files
+is correct.
+
+Only files inside the specified root directory and its subfolders
+will be scanned.
+
+Files that do not contain the property 'Image Name' will be ignored.
+
+Running the Script
+
+Open Command Prompt or PowerShell.
+
+Navigate to the folder where your script is saved.
+
+Run this command:
+
+python script.py "C:\Path\To\Your\Data" --output results.csv
+
+Parameters:
+
+First (required): The root directory where the script will scan
+for .txt files.
+
+--output (optional): The name of the output .csv file.
+If not provided, it defaults to "output.csv".
+
+What the Script Does
+
+Scans all .txt files under the specified root directory.
+
+Includes only those files that contain 'Image Name'.
+
+Extracts the following fields from each file:
+
+Biomass (µm^3/µm^2)
+
+Roughness Coefficient (Ra*)
+
+Surface Area (µm^2)
+
+Surface to biovolume ratio (µm^2/µm^3)
+
+Average thickness (Entire area) (µm)
+
+Average thickness (Biomass) (µm)
+
+Special Handling:
+
+For any Image Name ending in 'null ch1':
+
+Finds related entries ending in '#1 ch1' (Live) and '#1 ch2' (Dead).
+
+Extracts their 'Biomass' values into new columns: 'Live' and 'Dead'.
+
+Adds a 'DEAD/LIVE ratio' column (Dead divided by Live).
+
+Notes
+
+Output CSV will be created in the same folder from which you run the script.
+
+Blank values will be empty in the output.
+
+Script is intended to work on any platform but has only been tested on Windows.
+
+Ensure text files are UTF-8 encoded (do not use Word or rich text format).
+
+End of Guide
+
