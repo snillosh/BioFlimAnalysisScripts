@@ -52,6 +52,7 @@ def select_cells(datasets):
     selected_cells = {name: [] for name in datasets}
     used_cells = set()
     original_counts = {name: len(cells) for name, cells in datasets.items()}
+    borrow_log = {name: 0 for name in datasets}
 
     def cell_id(name, df):
         return (name, id(df))
@@ -84,7 +85,6 @@ def select_cells(datasets):
                 if donor_name == name:
                     continue  # Don't borrow from self
                 total_donor_cells = original_counts[donor_name]
-                donor_selected = selected_cells[donor_name]
                 donor_remaining = [
                     (donor_name, c) for c in donor_cells
                     if cell_id(donor_name, c) not in used_cells
@@ -104,14 +104,20 @@ def select_cells(datasets):
             sampled = np.random.choice(len(donor_pool), size=needed, replace=False, p=probs)
             to_add = [donor_pool[i] for i in sampled]
 
-            selected_cells[name].extend(to_add)
-            for s in to_add:
-                used_cells.add(cell_id(*s))
+            for donor_name, c in to_add:
+                selected_cells[name].append((donor_name, c))
+                used_cells.add((donor_name, id(c)))
+                borrow_log[donor_name] += 1
 
     # Final check
     for name in selected_cells:
         if len(selected_cells[name]) != 30:
             raise RuntimeError(f"Dataset '{name}' ended up with {len(selected_cells[name])} cells instead of 30.")
+
+    print("\nBorrowing summary:")
+    for donor_name, count in borrow_log.items():
+        if count > 0:
+            print(f"  Borrowed {count} cells from {donor_name}")
 
     print("Cell selection complete.")
     return selected_cells
