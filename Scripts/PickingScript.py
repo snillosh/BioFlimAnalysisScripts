@@ -4,22 +4,11 @@ import pandas as pd
 import numpy as np
 
 EXPECTED_COLUMNS = [
-    "Filename",
-    "Position Index",
-    "X Position",
-    "Y Position",
-    "Baseline Offset [N]",
-    "Contact Point Offset [m]",
-    "Young's Modulus [Pa]",
-    "Contact Point [m]",
-    "Baseline [N]",
-    "ResidualRMS [N]",
-    "Height [m]",
-    "Ref. Value For Feedback Chan. [N]",
-    "Baseline Offset [N]",
-    "Adhesion [N]",
-    "Minimum Value [N]",
-    "Minimum Position [m]"
+    "Filename", "Position Index", "X Position", "Y Position",
+    "Baseline Offset [N]", "Contact Point Offset [m]", "Young's Modulus [Pa]",
+    "Contact Point [m]", "Baseline [N]", "ResidualRMS [N]", "Height [m]",
+    "Ref. Value For Feedback Chan. [N]", "Baseline Offset [N]", "Adhesion [N]",
+    "Minimum Value [N]", "Minimum Position [m]"
 ]
 
 def split_into_cells(df):
@@ -60,48 +49,66 @@ def load_all_datasets(root_path):
 
 def select_cells(datasets):
     print("\nSelecting 30 cells per dataset (weighted random)...")
-    all_cells = []
-    for dataset_name, cells in datasets.items():
-        for cell in cells:
-            all_cells.append((dataset_name, cell))
-
-    if len(all_cells) < 90:
-        raise ValueError(f"Only found {len(all_cells)} cells in total — need at least 90.")
-
     selected_cells = {name: [] for name in datasets}
     used_cells = set()
+    original_counts = {name: len(cells) for name, cells in datasets.items()}
 
     def cell_id(name, df):
         return (name, id(df))
 
-    for dataset_name in datasets:
-        own_cells = [(n, c) for n, c in all_cells if n == dataset_name and cell_id(n, c) not in used_cells]
-        if len(own_cells) >= 30:
-            weights = [len(c[1]) for c in own_cells]
-            probabilities = np.array(weights) / np.sum(weights)
-            sampled = np.random.choice(len(own_cells), size=30, replace=False, p=probabilities)
-            selected = [own_cells[i] for i in sampled]
+    # Step 1: Try to select up to 30 from each dataset
+    for name, cells in datasets.items():
+        available = [(name, c) for c in cells if cell_id(name, c) not in used_cells]
+        if len(available) >= 30:
+            weights = [len(c[1]) for c in available]
+            probs = np.array(weights) / np.sum(weights)
+            sampled = np.random.choice(len(available), size=30, replace=False, p=probs)
+            selected = [available[i] for i in sampled]
         else:
-            selected = own_cells
+            selected = available
 
-        selected_cells[dataset_name].extend(selected)
-        for n, c in selected:
-            used_cells.add(cell_id(n, c))
-        print(f"  Selected {len(selected)} from {dataset_name}")
+        selected_cells[name].extend(selected)
+        for s in selected:
+            used_cells.add(cell_id(*s))
+        print(f"  Selected {len(selected)} from {name}")
 
-    for dataset_name in datasets:
-        needed = 30 - len(selected_cells[dataset_name])
+    # Step 2: Borrow for any deficient datasets
+    for name in datasets:
+        needed = 30 - len(selected_cells[name])
         if needed > 0:
-            print(f"  Borrowing {needed} cells for {dataset_name}...")
-            remaining_cells = [(n, c) for n, c in all_cells if cell_id(n, c) not in used_cells]
-            weights = [len(c[1]) for c in remaining_cells]
-            probabilities = np.array(weights) / np.sum(weights)
-            sampled = np.random.choice(len(remaining_cells), size=needed, replace=False, p=probabilities)
-            to_add = [remaining_cells[i] for i in sampled]
-            selected_cells[dataset_name].extend(to_add)
-            for n, c in to_add:
-                used_cells.add(cell_id(n, c))
+            print(f"  Borrowing {needed} cells for {name}...")
 
+            donor_pool = []
+
+            for donor_name, donor_cells in datasets.items():
+                if donor_name == name:
+                    continue  # Don't borrow from self
+                total_donor_cells = original_counts[donor_name]
+                donor_selected = selected_cells[donor_name]
+                donor_remaining = [
+                    (donor_name, c) for c in donor_cells
+                    if cell_id(donor_name, c) not in used_cells
+                ]
+                max_lendable = total_donor_cells - 30
+                if max_lendable > 0:
+                    donor_pool.extend(donor_remaining[:max_lendable])
+
+            if len(donor_pool) < needed:
+                raise RuntimeError(
+                    f"Not enough available cells to borrow for {name}. "
+                    f"Needed {needed}, only found {len(donor_pool)} eligible for borrowing."
+                )
+
+            weights = [len(c[1]) for c in donor_pool]
+            probs = np.array(weights) / np.sum(weights)
+            sampled = np.random.choice(len(donor_pool), size=needed, replace=False, p=probs)
+            to_add = [donor_pool[i] for i in sampled]
+
+            selected_cells[name].extend(to_add)
+            for s in to_add:
+                used_cells.add(cell_id(*s))
+
+    # Final check
     for name in selected_cells:
         if len(selected_cells[name]) != 30:
             raise RuntimeError(f"Dataset '{name}' ended up with {len(selected_cells[name])} cells instead of 30.")
@@ -114,9 +121,8 @@ def combine_selected_cells(selected_cells):
     all_rows = []
     header_written = False
 
-    for dataset_name, cell_list in selected_cells.items():
-        for cell in cell_list:
-            df = cell[1]
+    for cell_list in selected_cells.values():
+        for dataset_name, df in cell_list:
             ordered_cols = [col for col in EXPECTED_COLUMNS if col in df.columns]
             extra_cols = [col for col in df.columns if col not in EXPECTED_COLUMNS]
             df = df[ordered_cols + extra_cols]
@@ -133,7 +139,6 @@ def main():
     parser = argparse.ArgumentParser(description="Select 30 cells from each dataset (CSV file) under a root folder.")
     parser.add_argument("root_path", help="Path to root folder containing dataset CSV files.")
     parser.add_argument("output_path", help="Path to save the combined selected cells CSV.")
-
     args = parser.parse_args()
 
     print("========== CELL SELECTOR START ==========\n")
