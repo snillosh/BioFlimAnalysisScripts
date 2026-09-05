@@ -2,6 +2,11 @@
 
 Contains a range of python scripts for data analysis on biofilm data.
 
+## Phagocytosis report summariser
+
+See [docs/phago.md](docs/phago.md) for installation, usage, input parsing,
+replicate handling, error reporting, and output-workbook details.
+
 # QR Generator
 
 Self contained .NET console app for generating QR codes.
