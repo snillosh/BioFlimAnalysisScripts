@@ -1,11 +1,18 @@
 # Bio Film Analysis Scripts
 
-Contains a range of python scripts for data analysis on biofilm data.
+Contains Python and R scripts for biofilm and phagocytosis data analysis.
 
 ## Phagocytosis report summariser
 
 See [docs/phago.md](docs/phago.md) for installation, usage, input parsing,
 replicate handling, error reporting, and output-workbook details.
+
+## Phagocytosis statistical analysis
+
+Use `Scripts/PhagocytosisAnalysis.R` to analyse the workbook created by the
+Python summariser. See
+[docs/phagocytosis-analysis.md](docs/phagocytosis-analysis.md) for Windows and
+RStudio setup, input rules, statistical methods, plots, and output files.
 
 # QR Generator
 
