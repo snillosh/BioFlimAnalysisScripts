@@ -1,45 +1,33 @@
 # Red/blue biofilm exports
 
 In Fiji, choose **Plugins > Macros > Run...**, open
-`Scripts/RedBlueBiofilmExports.ijm`, and select the folder containing your CZI
-files. Bio-Formats and Volume Viewer must be installed.
+`Scripts/RedBlueBiofilmExports.ijm`, and select the input folder.
+Bio-Formats and Volume Viewer must be installed.
 
-The macro processes CZI files directly inside that folder (not subfolders).
-It uses `open(path)`, as in the original recording, rather than supplying
-Bio-Formats import options. Your normal opening settings apply; an import dialog
-may appear. Configure the importer to open one series as one two-channel stack.
-Each stack must have exactly two channels,
-one time point, and at least two Z slices. Unsupported stacks are skipped with
-a message in the Log window.
+This macro follows `NeutExport.ijm`, adapted for two-channel CZI stacks.
+Source channel 2 goes into the red merge slot, source channel 1 into the blue
+slot, and no green input is supplied. It runs `Blue` then `Red`, exports the
+maximum-intensity projection, then exports the merged stack's Volume Viewer view.
 
-The image-processing commands follow the original recording: `Blue`, `Red`,
-maximum-intensity Z projection, channel splitting, and merging with channel 2
-in the red slot and channel 1 in the blue slot. No new contrast, autoscale,
-threshold, LUT inversion, or projection-range settings are applied.
+It uses `open(path)` from the original recording rather than forcing
+Bio-Formats autoscaling or import colour settings. Your normal import settings
+apply; a dialog may appear. Configure opening to produce one two-channel Z-stack
+per file. Adjustments made only to another open image are not copied.
 
-Outputs:
+Volume Viewer is called without rendering options. Configure it manually and
+close its window to save preferences before running the macro.
 
-- `exports/D7_2.tif`: RGB maximum-intensity Z projection.
-- `exports/D7_2_Volume_Viewer.tif`: RGB image of the rendered volume.
+Like `NeutExport.ijm`, it processes subfolders, creates `Exports` beside each
+input file, and replaces spaces in output names with underscores. Outputs:
 
-The volume export is a rendered view, not a copy of the original 3D stack.
-Before running the macro, open Volume Viewer manually, configure the view as
-desired, then close the Volume Viewer window so the plugin saves its preferences.
-The macro calls `run("Volume Viewer")` without options, matching the recorded
-workflow and loading those saved preferences. ImageJ batch mode makes the plugin
-return a rendered image automatically, without pausing for each file.
+- `Exports/D7_2.tif`
+- `Exports/D7_2_Volume_Viewer_1.tif`
 
-Do not add an options string to that call: Volume Viewer bypasses its saved
-preferences whenever macro options are supplied. Unspecified settings then use
-plugin defaults, including a blue background. See the source included in the
-[official Volume Viewer plugin](https://imagej.net/ij/plugins/volume-viewer).
-The macro does not force Bio-Formats autoscaling or a colour mode. These are
-controlled by your normal import settings. Display adjustments on an already
-open image are not automatically transferred by ImageJ to newly opened files.
+Existing output paths are reused, following the original exporter; move old
+results elsewhere to keep them. The Volume Viewer output is a rendered view,
+not the original 3D stack. The macro saves the `Volume_Viewer_1` image, matching
+the existing exporter. Close any old image with that name before running.
+A missing viewer output is reported in the Log.
 
-If either output already exists, the file is skipped. To rerun it, move or
-delete its existing outputs first. If an importer or plugin error stops the
-macro, inspect the error and any open intermediate images before rerunning.
-
-The macro has been reviewed statically; it still needs a trial run in Fiji
-with representative CZI data to verify the installed plugins and rendering.
+The adaptation has been checked against the existing macro, but has not been
+run in Fiji with representative CZI data.
