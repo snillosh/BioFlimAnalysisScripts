@@ -1,14 +1,17 @@
 // Fiji/ImageJ: batch-export two-channel CZI stacks in the selected folder.
 // Requires Bio-Formats and Volume Viewer (as included with Fiji).
-// Uses the first series only; expects exactly two channels, one time point,
+// Uses the normal ImageJ opening route and its remembered import settings.
+// Expects one opened stack with exactly two channels, one time point,
 // and at least two Z slices. Subfolders are not processed.
 // Output: exports/<name>.tif and exports/<name>_Volume_Viewer.tif.
 // Existing outputs are never overwritten: if either exists, skip that file.
 // Volume Viewer macro parameters: https://imagej.net/ij/plugins/volume-viewer
 requires("1.48");
 
-// Fixed rendering settings, applied to every stack. Adjust here if needed.
-volumeOptions = "display_mode=4 scale=1 axes=0 interpolation=2 angle_x=0 angle_y=0 angle_z=0";
+// Volume Viewer must be called WITHOUT options: supplying any options bypasses
+// its saved preferences, including background, viewing angle and render mode.
+// Configure Volume Viewer manually and close its window to save preferences
+// before running this macro. Batch mode still renders without interaction.
 
 rootDir = getDirectory("Choose the folder containing CZI stacks");
 exportsDir = rootDir + "exports" + File.separator;
@@ -34,7 +37,9 @@ for (i = 0; i < files.length; i++) {
 
     showStatus("Exporting " + files[i]);
     print("Processing: " + rootDir + files[i]);
-    run("Bio-Formats Importer", "open=[" + rootDir + files[i] + "] autoscale color_mode=Default view=Hyperstack stack_order=XYCZT series_1");
+    // Match the recording: do not override import options or force autoscaling.
+    // Depending on remembered Bio-Formats settings, an import dialog may appear.
+    open(rootDir + files[i]);
     sourceID = getImageID();
     getDimensions(w, h, channels, slices, frames);
     if (channels != 2 || frames != 1 || slices < 2) {
@@ -47,6 +52,9 @@ for (i = 0; i < files.length; i++) {
     // Unique intermediate titles avoid collisions with other open images.
     sourceTitle = "RBExport_" + sourceID;
     rename(sourceTitle);
+    // These LUT commands are part of the original working recording.
+    run("Blue");
+    run("Red");
     run("Z Project...", "projection=[Max Intensity]");
     projectionTitle = "RBProjection_" + sourceID;
     rename(projectionTitle);
@@ -60,8 +68,9 @@ for (i = 0; i < files.length; i++) {
     run("Split Channels");
     run("Merge Channels...", "c1=[C2-" + sourceTitle + "] c3=[C1-" + sourceTitle + "]");
     rgbID = getImageID();
-    // Supplying options invokes non-interactive rendering and returns a view image.
-    run("Volume Viewer", volumeOptions);
+    // Match the recorded workflow and load the user's saved viewer preferences.
+    // Volume Viewer detects ImageJ batch mode and returns a rendered view image.
+    run("Volume Viewer");
     if (getImageID() == rgbID)
         exit("Volume Viewer did not return a rendered image for " + files[i]);
     saveAs("Tiff", volumePath);
