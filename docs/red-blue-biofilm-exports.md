@@ -6,7 +6,9 @@ Bio-Formats and Volume Viewer must be installed.
 
 This macro follows `NeutExport.ijm`, adapted for two-channel CZI stacks.
 Source channel 2 goes into the red merge slot, source channel 1 into the blue
-slot, and no green input is supplied. It explicitly selects source channel 1
+slot. Green and all other unused merge slots are explicitly set to `*None*`.
+This matters in ImageJ 1.48v: omitted slots are auto-filled from image names,
+so omitting green can reuse source channel 2 in both red and green, making yellow. It explicitly selects source channel 1
 before applying `Blue`, then source channel 2 before applying `Red`, exports the
 maximum-intensity projection, then exports the merged stack's Volume Viewer view.
 

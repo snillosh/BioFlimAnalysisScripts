@@ -57,7 +57,8 @@ function processFile(path) {
     c1Max = "C1-" + maxTitle;
     c2Max = "C2-" + maxTitle;
 
-    run("Merge Channels...", "c1=[" + c2Max + "] c3=[" + c1Max + "]");
+    // ImageJ 1.48v auto-fills omitted slots: explicitly clear every unused one.
+    run("Merge Channels...", "c1=[" + c2Max + "] c2=[*None*] c3=[" + c1Max + "] c4=[*None*] c5=[*None*] c6=[*None*] c7=[*None*]");
     rgbMax = getTitle();
 
     saveAs("Tiff", projectionPath);
@@ -74,7 +75,7 @@ function processFile(path) {
     c1 = "C1-" + original;
     c2 = "C2-" + original;
 
-    run("Merge Channels...", "c1=[" + c2 + "] c3=[" + c1 + "]");
+    run("Merge Channels...", "c1=[" + c2 + "] c2=[*None*] c3=[" + c1 + "] c4=[*None*] c5=[*None*] c6=[*None*] c7=[*None*]");
     rgb = getTitle();
 
     run("Volume Viewer");
