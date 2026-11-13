@@ -42,7 +42,10 @@ function processFile(path) {
 
     original = getTitle();
 
+    // LUT commands affect the active channel; select each source explicitly.
+    Stack.setChannel(1);
     run("Blue");
+    Stack.setChannel(2);
     run("Red");
 
     // ---- Max projection export ----

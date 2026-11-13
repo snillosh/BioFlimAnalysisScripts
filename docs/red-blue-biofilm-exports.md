@@ -6,7 +6,8 @@ Bio-Formats and Volume Viewer must be installed.
 
 This macro follows `NeutExport.ijm`, adapted for two-channel CZI stacks.
 Source channel 2 goes into the red merge slot, source channel 1 into the blue
-slot, and no green input is supplied. It runs `Blue` then `Red`, exports the
+slot, and no green input is supplied. It explicitly selects source channel 1
+before applying `Blue`, then source channel 2 before applying `Red`, exports the
 maximum-intensity projection, then exports the merged stack's Volume Viewer view.
 
 It uses `open(path)` from the original recording rather than forcing
