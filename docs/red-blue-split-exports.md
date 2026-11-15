@@ -19,9 +19,10 @@ Spaces in the input basename become underscores, matching SplitExporter.
 Projection TIFFs retain the individual channel data and its colour lookup table,
 matching SplitExporter; rendered volume views are RGB images.
 
-Like `RedBlueBiofilmExports.ijm`, the macro uses `open(path)` without forcing
-Bio-Formats autoscaling or colour settings. Configure import to open one
-two-channel Z-stack per CZI. Import dialogs may appear according to your settings.
+Like the existing exporters, the macro calls Bio-Formats Importer with explicit
+options to suppress the import-options dialog: Autoscale enabled, Default colour
+mode, Hyperstack view, and XYCZT stack order. These match the confirmed working
+import settings; they are supplied by the macro rather than read from the dialog.
 Volume Viewer is called without options: configure it manually and close its
 window to save preferences before running. The macro applies the requested
 red or blue lookup table to each split image before exporting.

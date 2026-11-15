@@ -1,6 +1,6 @@
 // Two-channel adaptation of SplitExporter.ijm.
 // Source C1: blue; source C2: red. Four separate TIFFs, no merging.
-// Normal import settings and saved Volume Viewer preferences are retained.
+// Explicit Bio-Formats import options; saved Volume Viewer preferences retained.
 requires("1.48");
 
 rootDir = getDirectory("Choose a Directory");
@@ -35,8 +35,8 @@ function processFile(path) {
     baseName = stripExtension(fileName);
     safeName = replace(baseName, " ", "_");
 
-    // Match RedBlueBiofilmExports: use remembered import settings.
-    open(path);
+    // Use the existing exporters' import options to suppress the options dialog.
+    run("Bio-Formats Importer", "open=[" + path + "] autoscale color_mode=Default view=Hyperstack stack_order=XYCZT");
 
     original = getTitle();
 

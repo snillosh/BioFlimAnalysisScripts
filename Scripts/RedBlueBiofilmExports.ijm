@@ -1,5 +1,5 @@
 // Based on NeutExport.ijm for two-channel CZI stacks: C2 red, C1 blue.
-// Normal import settings; no Volume Viewer rendering options are supplied.
+// Explicit Bio-Formats import options; no Volume Viewer rendering options.
 requires("1.48");
 
 rootDir = getDirectory("Choose a Directory");
@@ -37,8 +37,8 @@ function processFile(path) {
     projectionPath = exportsDir + safeName + ".tif";
     volumePath = exportsDir + safeName + "_Volume_Viewer_1.tif";
 
-    // Use the normal opening route and remembered import settings.
-    open(path);
+    // Use the existing exporters' import options to suppress the options dialog.
+    run("Bio-Formats Importer", "open=[" + path + "] autoscale color_mode=Default view=Hyperstack stack_order=XYCZT");
 
     original = getTitle();
 

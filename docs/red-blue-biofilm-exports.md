@@ -12,10 +12,11 @@ so omitting green can reuse source channel 2 in both red and green, making yello
 before applying `Blue`, then source channel 2 before applying `Red`, exports the
 maximum-intensity projection, then exports the merged stack's Volume Viewer view.
 
-It uses `open(path)` from the original recording rather than forcing
-Bio-Formats autoscaling or import colour settings. Your normal import settings
-apply; a dialog may appear. Configure opening to produce one two-channel Z-stack
-per file. Adjustments made only to another open image are not copied.
+It uses the same explicit Bio-Formats Importer call as the existing exporters
+to suppress the import-options dialog: Autoscale enabled, Default colour mode,
+Hyperstack view, and XYCZT stack order. These match the confirmed working import
+settings; they are supplied by the macro rather than read from the dialog.
+Adjustments made only to another open image are not copied.
 
 Volume Viewer is called without rendering options. Configure it manually and
 close its window to save preferences before running the macro.
